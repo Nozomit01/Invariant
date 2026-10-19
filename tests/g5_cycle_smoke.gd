@@ -2,7 +2,7 @@ extends SceneTree
 ## Real scene replacement and input across repeated technical runs.
 
 const ROOF := "res://scenes/rooftop.tscn"
-const HUB := "res://scenes/technical_hub.tscn"
+const HUB := "res://scenes/street_hub.tscn"
 var failures := 0
 
 
@@ -48,10 +48,10 @@ func _touch(index: int, position: Vector2, pressed: bool) -> void:
 
 
 func _clean_input() -> bool:
-	for code in [KEY_A, KEY_D, KEY_LEFT, KEY_RIGHT, KEY_E, KEY_1, KEY_2, KEY_3]:
+	for code in [KEY_A, KEY_D, KEY_LEFT, KEY_RIGHT, KEY_E, KEY_1, KEY_2, KEY_3, KEY_SPACE]:
 		if Input.is_physical_key_pressed(code):
 			return false
-	for action in [&"move_left", &"move_right", &"interact", &"dialogue_choice_1", &"dialogue_choice_2", &"dialogue_choice_3"]:
+	for action in [&"move_left", &"move_right", &"interact", &"dialogue_choice_1", &"dialogue_choice_2", &"dialogue_choice_3", &"hub_inspect"]:
 		if Input.is_action_pressed(action):
 			return false
 	return true
@@ -132,13 +132,13 @@ func _run() -> void:
 		if cycle <= 1:
 			_key(KEY_E, true)
 		else:
-			_touch(2, Vector2(160, 210), true)
-		await _frames(4)
+			_touch(2, Vector2(256, 210), true)
+		await _frames(100) # G6a now performs the required scripted return sequence.
 		_check(current_scene != null and current_scene.scene_file_path == ROOF, "new-run action returns to the roof")
 		_check(old_hub.get_ref() == null and _scene_count() == 1, "old hub freed without duplicate scenes")
 		_check(_clean_input(), "new roof inherits no held actions")
 		_key(KEY_E, false)
-		_touch(2, Vector2(160, 210), false)
+		_touch(2, Vector2(256, 210), false)
 		await _frames(8)
 		_check(is_equal_approx(current_scene.get_node("PLACEHOLDER_NON_CANON").position.x, 72.0), "new run stays still without fresh movement input")
 		_check(current_scene.run_state.snapshot() == initial, "all old run parameters were discarded")

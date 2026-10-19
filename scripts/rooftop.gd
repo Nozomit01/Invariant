@@ -63,7 +63,7 @@ func _physics_process(delta: float) -> void:
 	if near_exit and Input.is_action_just_pressed("interact"):
 		leaving = true
 		dialogue.stop()
-		SceneSwitch.go_to.call_deferred(self, "res://scenes/technical_hub.tscn")
+		SceneSwitch.go_to.call_deferred(self, "res://scenes/street_hub.tscn")
 		return
 	if not nearby:
 		dialogue.stop()

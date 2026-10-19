@@ -68,6 +68,46 @@ Windows-проверка на настоящем ПК остаётся отде�
 
 Локально импорт G1a выполнен официальным Godot
 `4.7.2.stable.official.ed1daf0bf`: код 0, без ошибок в выводе.
-Результаты реального CI и ссылки на артефакты будут записаны после запуска.
+После добавления пресетов локальный импорт также завершился с кодом 0,
+но сообщил `Unable to open Android 'build-tools' directory.`: локально SDK
+не установлен. В CI SDK установлен успешно, импорт и headless-запуск прошли.
+
+**G1b пока не принята: APK/EXE-артефакты не созданы.**
+
+- [PR #4](https://github.com/Nozomit01/Invariant/pull/4), ветка
+  `codex/g1b-android-windows`; PR не объединён.
+- [Первый запуск](https://github.com/Nozomit01/Invariant/actions/runs/39227935313):
+  остановился на `setup-android`, который запросил удалённый пакет `tools`.
+  Выполнена одна точечная исправляющая итерация: явно указан
+  `packages: platform-tools` вместо значения action по умолчанию.
+- [Второй запуск](https://github.com/Nozomit01/Invariant/actions/runs/39228056850),
+  проверенный исходный коммит `813a9e12d5b517b3f1da03f04cb7b6fd0f655d2e`:
+  установка SDK/JDK, проверка SHA-256 официальных архивов, импорт Godot 4.7.2
+  и headless-запуск успешны. Экспорт Android завершился с кодом 1:
+
+```text
+ERROR: Cannot export project with preset "Android Debug" due to configuration errors:
+"Min SDK" can only be overridden when "Use Gradle Build" is enabled.
+"Target SDK" can only be overridden when "Use Gradle Build" is enabled.
+ETC2/ASTC texture compression is required for Android export.
+ERROR: Project export for preset "Android Debug" failed.
+```
+
+Windows-экспорт и загрузка APK/Windows ZIP были пропущены после ошибки Android.
+API GitHub подтвердил только артефакт
+[INVARIANT-build-logs](https://github.com/Nozomit01/Invariant/actions/runs/39228056850/artifacts/12175725937)
+(1573 байта), а не готовые сборки. Чтение лога через `gh run view --log-failed`
+выполнено; скачивание ZIP логов из текущего окружения получило HTTP 403.
+Инструкция выше описывает скачивание будущего успешного APK, но сейчас
+скачиваемого APK нет.
+
+YAML, синтаксис shell/Python и `git diff --check` проверены локально.
+`git diff --exit-code origin/main...HEAD -- project.godot scenes scripts docs/canon`
+не выявил изменений игровых или канонических файлов.
+
+Следующая исправляющая итерация и новый CI требуют отдельного разрешения:
+нужно устранить указанные ограничения экспортёра (без изменения сцен и механики).
+После второго неуспешного запуска код не исправлялся и CI не перезапускался;
+добавлены только результаты в этот отчёт.
 Успешный экспорт не доказывает запуск на телефоне или Windows-ПК.
 G1c и G2 в этой задаче не выполняются.

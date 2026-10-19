@@ -1,3 +1,6 @@
 # Godot editor cache and local export credentials.
 .godot/
 export_credentials.cfg
+build/
+*.keystore
+*.jks

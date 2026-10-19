@@ -47,13 +47,13 @@ func _run() -> void:
 	root.add_child(rooftop)
 	var player := rooftop.get_node("PLACEHOLDER_NON_CANON") as Node2D
 	var prompt := rooftop.get_node("UI/Prompt") as Label
-	var message := rooftop.get_node("UI/Message") as Label
+	var dialogue := rooftop.get_node("UI/Dialogue") as Node2D
 	await _frames()
-	_check(not prompt.visible and message.text.is_empty(), "no prompt or interaction at spawn")
+	_check(not prompt.visible and not dialogue.visible, "no prompt or interaction at spawn")
 	_key(KEY_E, true)
 	await _frames()
 	_key(KEY_E, false)
-	_check(message.text.is_empty(), "E does nothing away from the point")
+	_check(not dialogue.visible, "E does nothing away from the point")
 
 	var start_x := player.position.x
 	_key(KEY_D, true)
@@ -93,10 +93,10 @@ func _run() -> void:
 	_key(KEY_E, true)
 	await _frames()
 	_key(KEY_E, false)
-	_check(message.text == "Взаимодействие работает", "E shows only the technical message")
+	_check(dialogue.visible and dialogue.get("awaiting_choice"), "E opens the technical dialogue")
 	player.position.x = 100.0
 	await _frames()
-	_check(not prompt.visible and message.text.is_empty(), "leaving the point clears prompt and message")
+	_check(not prompt.visible and not dialogue.visible, "leaving the point clears prompt and dialogue")
 
 	root.size = Vector2i(2400, 1080)
 	await _frames()
@@ -114,7 +114,7 @@ func _run() -> void:
 	_touch(0, Vector2(98, 210), true)
 	_touch(1, Vector2(274, 210), true)
 	await _frames(4)
-	_check(player.position.x > 236.0 and message.text == "Взаимодействие работает", "two fingers move and interact together")
+	_check(player.position.x > 236.0 and dialogue.visible, "two fingers move and interact together")
 	_touch(1, Vector2(274, 210), false)
 	await _frames()
 	_check(Input.is_action_pressed("move_right") and not Input.is_action_pressed("interact"), "releasing interaction keeps movement held")

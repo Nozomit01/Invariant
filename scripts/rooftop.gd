@@ -1,5 +1,5 @@
 extends Node2D
-## G2 technical sandbox only. Every visual is PLACEHOLDER_NON_CANON.
+## G2 movement with one G3 technical exchange; PLACEHOLDER_NON_CANON.
 
 const SPEED := 80.0
 const ACCELERATION := 520.0
@@ -13,7 +13,7 @@ var horizontal_speed := 0.0
 @onready var player: Node2D = $PLACEHOLDER_NON_CANON
 @onready var interaction_point: Node2D = $InteractionPoint
 @onready var prompt: Label = $UI/Prompt
-@onready var message: Label = $UI/Message
+@onready var dialogue = $UI/Dialogue
 
 
 func _physics_process(delta: float) -> void:
@@ -26,8 +26,14 @@ func _physics_process(delta: float) -> void:
 		horizontal_speed = 0.0
 
 	var nearby := absf(player.position.x - interaction_point.position.x) <= INTERACTION_DISTANCE
-	prompt.visible = nearby
 	if not nearby:
-		message.text = ""
+		dialogue.stop()
 	elif Input.is_action_just_pressed("interact"):
-		message.text = "Взаимодействие работает"
+		dialogue.start()
+	elif dialogue.awaiting_choice:
+		for index in range(3):
+			if Input.is_action_just_pressed("dialogue_choice_" + str(index + 1)):
+				dialogue.choose(index)
+				break
+	prompt.visible = nearby and not dialogue.visible
+	$UI/PointLabel.visible = not dialogue.visible

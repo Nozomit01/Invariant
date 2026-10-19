@@ -1,6 +1,8 @@
 extends Node2D
 ## A single technical exchange, with no global dialogue framework.
 
+signal choice_selected(index: int)
+
 const DATA = preload("res://data/dialogue/g3_test_dialogue.gd")
 
 var awaiting_choice := false
@@ -45,8 +47,11 @@ func _ready() -> void:
 	stop()
 
 
-func start() -> void:
+func start(demo_page: int = 0) -> void:
 	line.text = DATA.OPENING
+	for index in range(2):
+		var label := choices[index].get_node("Label") as Label
+		label.text = DATA.DEMOS[demo_page][index]["label"]
 	awaiting_choice = true
 	visible = true
 	_show_choices(true)
@@ -65,6 +70,11 @@ func choose(index: int) -> void:
 	line.text = DATA.CHOICES[index]["reaction"]
 	awaiting_choice = false
 	_show_choices(false)
+	choice_selected.emit(index)
+
+
+func show_reaction(text: String) -> void:
+	line.text = text
 
 
 func _show_choices(show_choices: bool) -> void:

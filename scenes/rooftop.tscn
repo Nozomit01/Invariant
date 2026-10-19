@@ -1,0 +1,147 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/rooftop.gd" id="1_rooftop"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_touch"]
+size = Vector2(52, 40)
+
+[node name="Rooftop_PLACEHOLDER_NON_CANON" type="Node2D"]
+script = ExtResource("1_rooftop")
+
+[node name="Background" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 320, 0, 320, 240, 0, 240)
+color = Color(0.12, 0.14, 0.16, 1)
+
+[node name="Roof" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(12, 168, 308, 168, 308, 184, 12, 184)
+color = Color(0.34, 0.36, 0.38, 1)
+
+[node name="LeftBoundary" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(12, 140, 16, 140, 16, 184, 12, 184)
+color = Color(0.5, 0.52, 0.54, 1)
+
+[node name="RightBoundary" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(304, 140, 308, 140, 308, 184, 304, 184)
+color = Color(0.5, 0.52, 0.54, 1)
+
+[node name="PLACEHOLDER_NON_CANON" type="Node2D" parent="."]
+position = Vector2(72, 154)
+
+[node name="Rectangle" type="Polygon2D" parent="PLACEHOLDER_NON_CANON"]
+polygon = PackedVector2Array(-6, -14, 6, -14, 6, 14, -6, 14)
+color = Color(0.72, 0.78, 0.84, 1)
+
+[node name="InteractionPoint" type="Node2D" parent="."]
+position = Vector2(236, 154)
+
+[node name="Marker" type="Polygon2D" parent="InteractionPoint"]
+polygon = PackedVector2Array(0, -8, 8, 0, 0, 8, -8, 0)
+color = Color(0.9, 0.8, 0.4, 1)
+
+[node name="UI" type="Node2D" parent="."]
+
+[node name="Title" type="Label" parent="UI"]
+offset_left = 8.0
+offset_top = 8.0
+offset_right = 312.0
+offset_bottom = 26.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+text = "G2 / PLACEHOLDER_NON_CANON"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="UI"]
+offset_left = 8.0
+offset_top = 38.0
+offset_right = 312.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+
+[node name="Prompt" type="Label" parent="UI"]
+visible = false
+offset_left = 8.0
+offset_top = 62.0
+offset_right = 312.0
+offset_bottom = 82.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+text = "E / Действие: взаимодействовать"
+horizontal_alignment = 1
+
+[node name="PointLabel" type="Label" parent="UI"]
+offset_left = 210.0
+offset_top = 116.0
+offset_right = 262.0
+offset_bottom = 134.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 12
+text = "Точка"
+horizontal_alignment = 1
+
+[node name="Left" type="TouchScreenButton" parent="UI"]
+position = Vector2(38, 210)
+shape = SubResource("RectangleShape2D_touch")
+shape_visible = false
+passby_press = true
+action = "move_left"
+
+[node name="Background" type="Polygon2D" parent="UI/Left"]
+polygon = PackedVector2Array(-26, -20, 26, -20, 26, 20, -26, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="UI/Left"]
+offset_left = -26.0
+offset_top = -20.0
+offset_right = 26.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = "<"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Right" type="TouchScreenButton" parent="UI"]
+position = Vector2(98, 210)
+shape = SubResource("RectangleShape2D_touch")
+shape_visible = false
+passby_press = true
+action = "move_right"
+
+[node name="Background" type="Polygon2D" parent="UI/Right"]
+polygon = PackedVector2Array(-26, -20, 26, -20, 26, 20, -26, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="UI/Right"]
+offset_left = -26.0
+offset_top = -20.0
+offset_right = 26.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 18
+text = ">"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Interact" type="TouchScreenButton" parent="UI"]
+position = Vector2(274, 210)
+shape = SubResource("RectangleShape2D_touch")
+shape_visible = false
+passby_press = true
+action = "interact"
+
+[node name="Background" type="Polygon2D" parent="UI/Interact"]
+polygon = PackedVector2Array(-26, -20, 26, -20, 26, 20, -26, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="UI/Interact"]
+offset_left = -26.0
+offset_top = -20.0
+offset_right = 26.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "Действие"
+horizontal_alignment = 1
+vertical_alignment = 1

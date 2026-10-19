@@ -1,0 +1,29 @@
+; G1a: one 2D project for Android and Windows, without export presets.
+config_version=5
+
+[application]
+
+config/name="INVARIANT"
+run/main_scene="res://scenes/start.tscn"
+config/features=PackedStringArray("4.6", "GL Compatibility")
+
+[display]
+
+; Preliminary layout for launch checks; not an approved final resolution.
+window/size/viewport_width=320
+window/size/viewport_height=240
+window/stretch/mode="viewport"
+window/stretch/aspect="keep"
+window/stretch/scale_mode="integer"
+window/handheld/orientation=0
+
+[input_devices]
+
+pointing/emulate_mouse_from_touch=true
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/canvas_textures/default_texture_filter=0

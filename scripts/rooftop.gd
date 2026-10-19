@@ -3,6 +3,7 @@ extends Node2D
 
 const RunState = preload("res://scripts/state/run_state.gd")
 const DialogueData = preload("res://data/dialogue/g3_test_dialogue.gd")
+const SceneSwitch = preload("res://scripts/technical_scene_switch.gd")
 
 const SPEED := 80.0
 const ACCELERATION := 520.0
@@ -10,15 +11,18 @@ const BRAKING := 700.0
 const LEFT_EDGE := 22.0
 const RIGHT_EDGE := 298.0
 const INTERACTION_DISTANCE := 26.0
+const EXIT_DISTANCE := 12.0
 
 var horizontal_speed := 0.0
 var run_state = RunState.new()
 var demo_page := 0
+var leaving := false
 
 @onready var player: Node2D = $PLACEHOLDER_NON_CANON
 @onready var interaction_point: Node2D = $InteractionPoint
 @onready var prompt: Label = $UI/Prompt
 @onready var dialogue = $UI/Dialogue
+@onready var exit_point: Node2D = $Exit_PLACEHOLDER_NON_CANON
 
 
 func _ready() -> void:
@@ -42,6 +46,8 @@ func _on_dialogue_choice(index: int) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if leaving:
+		return
 	var direction := Input.get_axis("move_left", "move_right")
 	var rate := ACCELERATION if not is_zero_approx(direction) else BRAKING
 	horizontal_speed = move_toward(horizontal_speed, direction * SPEED, rate * delta)
@@ -51,6 +57,14 @@ func _physics_process(delta: float) -> void:
 		horizontal_speed = 0.0
 
 	var nearby := absf(player.position.x - interaction_point.position.x) <= INTERACTION_DISTANCE
+	var near_exit := absf(player.position.x - exit_point.position.x) <= EXIT_DISTANCE
+	$UI/ExitPrompt.visible = near_exit
+	$UI/Interact/Label.text = "Уйти" if near_exit else "Действие"
+	if near_exit and Input.is_action_just_pressed("interact"):
+		leaving = true
+		dialogue.stop()
+		SceneSwitch.go_to.call_deferred(self, "res://scenes/technical_hub.tscn")
+		return
 	if not nearby:
 		dialogue.stop()
 	elif Input.is_action_just_pressed("interact"):
@@ -62,3 +76,4 @@ func _physics_process(delta: float) -> void:
 				break
 	prompt.visible = nearby and not dialogue.visible
 	$UI/PointLabel.visible = not dialogue.visible
+	$UI/ExitLabel.visible = not dialogue.visible

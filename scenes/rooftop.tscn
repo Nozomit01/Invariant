@@ -94,6 +94,36 @@ text = "<"
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="Exit_PLACEHOLDER_NON_CANON" type="Node2D" parent="."]
+position = Vector2(34, 154)
+
+[node name="Marker" type="Polygon2D" parent="Exit_PLACEHOLDER_NON_CANON"]
+polygon = PackedVector2Array(-4, -14, 4, -14, 4, 14, -4, 14)
+color = Color(0.5, 0.64, 0.72, 1)
+
+[node name="ExitLabel" type="Label" parent="UI"]
+offset_left = 0.0
+offset_top = 108.0
+offset_right = 132.0
+offset_bottom = 136.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 8
+text = "PLACEHOLDER_NON_CANON\nУйти"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ExitPrompt" type="Label" parent="UI"]
+visible = false
+offset_left = 8.0
+offset_top = 32.0
+offset_right = 312.0
+offset_bottom = 62.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "PLACEHOLDER_NON_CANON\nE / Действие: Уйти"
+horizontal_alignment = 1
+vertical_alignment = 1
+
 [node name="Dialogue" type="Node2D" parent="UI"]
 visible = false
 script = ExtResource("2_dialogue")

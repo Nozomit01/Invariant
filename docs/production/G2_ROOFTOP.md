@@ -57,7 +57,34 @@ build-tools относится к окружению без SDK (экспорт 
 Движок сообщил для 2400×1080: viewport=(320,240), масштаб=(4,4),
 смещение=(560,60). Все три кнопки полностью внутри экрана и ниже крыши.
 Это headless-проверка геометрии и синтетического ввода, не физический телефон.
-Результаты CI и ссылки на артефакты прилагаются после реального запуска.
+## Реальная сборка G2
+
+[PR #5](https://github.com/Nozomit01/Invariant/pull/5), ветка `codex/g2-rooftop`.
+[GitHub Actions run 39240533988](https://github.com/Nozomit01/Invariant/actions/runs/39240533988)
+завершился **success**, экспортный job — 1 минута 1 секунда.
+Проверенный исходный коммит: `ba4c9c698cbcd5f3ffde6a6f5f6fc49b1930275d`.
+
+- [Android APK artifact](https://github.com/Nozomit01/Invariant/actions/runs/39240533988/artifacts/12181750469):
+  внутри `INVARIANT-debug.apk`, 28 210 469 байт. APK подписан, проверка
+  apksigner v2/v3 успешна; ABI только arm64-v8a, landscape подтверждён.
+- [Windows artifact](https://github.com/Nozomit01/Invariant/actions/runs/39240533988/artifacts/12180573649):
+  внутри `INVARIANT-windows-x86_64.zip` → `INVARIANT.exe`, 103 192 648 байт.
+  PE machine=0x8664, PCK встроен.
+- [Логи сборки](https://github.com/Nozomit01/Invariant/actions/runs/39240533988/artifacts/12180627996).
+
+Оба артефакта реально скачаны из GitHub. Python `zipfile.testzip()` подтвердил
+целостность внешних ZIP, APK и внутреннего Windows ZIP. Проверены присутствие
+новых rooftop-ресурсов в APK/EXE, архитектуры и совпадение SHA-256 с логом CI:
+
+```text
+bf5532888c0ed246c54ce214314bf0c92bf1db52b7e44138b529424a035f1538  INVARIANT-debug.apk
+f2edb984acb541124489c560c6311ae2661b54e7f00859035681fba4e24fd0b9  INVARIANT-windows-x86_64.zip
+```
+
+Артефакты хранятся 14 дней по настройкам существующего workflow.
+GitHub сообщил устаревшие версии Node/actions существующего CI, но сборка
+успешна; workflow не обновлялся в рамках G2. Финальный коммит меняет только
+этот отчёт и использует `[skip ci]`, чтобы не создавать повторную сборку.
 
 Используется существующий `.github/workflows/g1b-build.yml` без изменений,
 пресеты и подпись также не меняются. Последний отчёт G1b содержит историю

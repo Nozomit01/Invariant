@@ -112,60 +112,7 @@ jobs:
           grep -F "native-code: 'arm64-v8a'" build/logs/android-badging.txt
           grep -F "package: name='io.github.nozomit01.invariant.debug'" build/logs/android-badging.txt
           "$ANDROID_HOME/build-tools/$ANDROID_BUILD_TOOLS/aapt" dump xmltree build/android/INVARIANT-debug.apk AndroidManifest.xml > build/logs/android-manifest.txt
-          grep -E 'screenOrientation.*\(type 0x10\)0x0
-
-      - name: Export Windows x86_64 EXE
-        run: |
-          godot --headless --path . --export-debug 'Windows Desktop' build/windows/INVARIANT.exe 2>&1 | tee build/logs/windows-export.log
-          python3 - <<'PY'
-          import struct
-          from pathlib import Path
-          data = Path('build/windows/INVARIANT.exe').read_bytes()
-          assert data[:2] == b'MZ', 'Missing Windows executable'
-          pe = struct.unpack_from('<I', data, 0x3c)[0]
-          assert data[pe:pe+4] == b'PE\0\0', 'Invalid PE header'
-          assert struct.unpack_from('<H', data, pe+4)[0] == 0x8664, 'Expected x86_64'
-          print('Verified Windows PE x86_64 executable')
-          PY
-          (cd build/windows && zip -9 ../INVARIANT-windows-x86_64.zip INVARIANT.exe)
-          unzip -t build/INVARIANT-windows-x86_64.zip
-
-      - name: Record checksums and reject export errors
-        run: |
-          if grep -E '(^ERROR:|SCRIPT ERROR:|Parse Error:)' build/logs/*export.log; then exit 1; fi
-          sha256sum build/android/INVARIANT-debug.apk build/INVARIANT-windows-x86_64.zip | tee build/logs/SHA256SUMS.txt
-
-      - name: Upload Android APK
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: INVARIANT-Android-debug-arm64
-          path: build/android/INVARIANT-debug.apk
-          if-no-files-found: error
-          retention-days: 14
-          compression-level: 0
-
-      - name: Upload Windows ZIP with EXE
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: INVARIANT-Windows-x86_64
-          path: build/INVARIANT-windows-x86_64.zip
-          if-no-files-found: error
-          retention-days: 14
-          compression-level: 0
-
-      - name: Upload build logs
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: INVARIANT-build-logs
-          path: build/logs/
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Remove temporary private key
-        if: always()
-        run: rm -f "$RUNNER_TEMP/invariant-debug.keystore"
- build/logs/android-manifest.txt
+          grep -F 'android:screenOrientation(0x0101001e)=(type 0x10)0x0' build/logs/android-manifest.txt
 
       - name: Export Windows x86_64 EXE
         run: |

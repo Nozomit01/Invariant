@@ -1,0 +1,220 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://scripts/street_hub.gd" id="1_hub"]
+
+[sub_resource type="RectangleShape2D" id="Shape_look"]
+size = Vector2(48, 40)
+
+[sub_resource type="RectangleShape2D" id="Shape_inspect"]
+size = Vector2(80, 40)
+
+[sub_resource type="RectangleShape2D" id="Shape_restart"]
+size = Vector2(96, 40)
+
+[sub_resource type="RectangleShape2D" id="Shape_point"]
+size = Vector2(40, 32)
+
+[node name="StreetHub_PLACEHOLDER_NON_CANON" type="Node2D"]
+script = ExtResource("1_hub")
+
+[node name="Background" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(0, 0, 320, 0, 320, 240, 0, 240)
+color = Color(0.12, 0.14, 0.16, 1)
+
+[node name="Title" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 4.0
+offset_right = 312.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "G6a / PLACEHOLDER_NON_CANON"
+horizontal_alignment = 1
+
+[node name="Status" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 24.0
+offset_right = 312.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+
+[node name="Inspection" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 54.0
+offset_right = 312.0
+offset_bottom = 80.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 9
+horizontal_alignment = 1
+
+[node name="Transition" type="Label" parent="."]
+offset_left = 8.0
+offset_top = 94.0
+offset_right = 312.0
+offset_bottom = 132.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 11
+text = "PLACEHOLDER_NON_CANON\nПереход на улицу"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Hub" type="Node2D" parent="."]
+visible = false
+
+[node name="House" type="Polygon2D" parent="Hub"]
+polygon = PackedVector2Array(108, 82, 288, 82, 288, 168, 108, 168)
+color = Color(0.26, 0.29, 0.32, 1)
+
+[node name="Entrance" type="Polygon2D" parent="Hub"]
+polygon = PackedVector2Array(232, 124, 264, 124, 264, 168, 232, 168)
+color = Color(0.08, 0.10, 0.12, 1)
+
+[node name="Street" type="Polygon2D" parent="Hub"]
+polygon = PackedVector2Array(0, 168, 320, 168, 320, 184, 0, 184)
+color = Color(0.36, 0.38, 0.40, 1)
+
+[node name="PLACEHOLDER_NON_CANON" type="Node2D" parent="Hub"]
+position = Vector2(150, 154)
+
+[node name="Body" type="Polygon2D" parent="Hub/PLACEHOLDER_NON_CANON"]
+polygon = PackedVector2Array(-6, -14, 6, -14, 6, 14, -6, 14)
+color = Color(0.72, 0.78, 0.84, 1)
+
+[node name="Look" type="Polygon2D" parent="Hub/PLACEHOLDER_NON_CANON"]
+polygon = PackedVector2Array(8, -12, 13, -10, 8, -8)
+color = Color(0.9, 0.8, 0.4, 1)
+
+[node name="Foot" type="Polygon2D" parent="Hub/PLACEHOLDER_NON_CANON"]
+position = Vector2(3, 12)
+polygon = PackedVector2Array(-4, -2, 4, -2, 4, 2, -4, 2)
+color = Color(0.72, 0.78, 0.84, 1)
+
+[node name="Cigarette" type="Node2D" parent="Hub/PLACEHOLDER_NON_CANON"]
+position = Vector2(9, -2)
+
+[node name="Paper" type="Polygon2D" parent="Hub/PLACEHOLDER_NON_CANON/Cigarette"]
+polygon = PackedVector2Array(0, 0, 6, 0, 6, 1.5, 0, 1.5)
+color = Color(0.85, 0.85, 0.85, 1)
+
+[node name="Tip" type="Polygon2D" parent="Hub/PLACEHOLDER_NON_CANON/Cigarette"]
+polygon = PackedVector2Array(5, 0, 7, 0, 7, 1.5, 5, 1.5)
+color = Color(0.9, 0.45, 0.2, 1)
+
+[node name="Points" type="Node2D" parent="Hub"]
+
+[node name="Street" type="TouchScreenButton" parent="Hub/Points"]
+position = Vector2(40, 156)
+shape = SubResource("Shape_point")
+shape_visible = false
+
+[node name="Marker" type="Polygon2D" parent="Hub/Points/Street"]
+polygon = PackedVector2Array(-4, 0, 0, -4, 4, 0, 0, 4)
+
+[node name="House" type="TouchScreenButton" parent="Hub/Points"]
+position = Vector2(180, 100)
+shape = SubResource("Shape_point")
+shape_visible = false
+
+[node name="Marker" type="Polygon2D" parent="Hub/Points/House"]
+polygon = PackedVector2Array(-4, 0, 0, -4, 4, 0, 0, 4)
+
+[node name="Entrance" type="TouchScreenButton" parent="Hub/Points"]
+position = Vector2(250, 146)
+shape = SubResource("Shape_point")
+shape_visible = false
+
+[node name="Marker" type="Polygon2D" parent="Hub/Points/Entrance"]
+polygon = PackedVector2Array(-4, 0, 0, -4, 4, 0, 0, 4)
+
+[node name="Controls" type="Node2D" parent="."]
+visible = false
+
+[node name="Left" type="TouchScreenButton" parent="Controls"]
+position = Vector2(32, 210)
+shape = SubResource("Shape_look")
+shape_visible = false
+action = "move_left"
+
+[node name="Background" type="Polygon2D" parent="Controls/Left"]
+polygon = PackedVector2Array(-24, -20, 24, -20, 24, 20, -24, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="Controls/Left"]
+offset_left = -24.0
+offset_top = -20.0
+offset_right = 24.0
+offset_bottom = 20.0
+mouse_filter = 2
+text = "<"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Right" type="TouchScreenButton" parent="Controls"]
+position = Vector2(88, 210)
+shape = SubResource("Shape_look")
+shape_visible = false
+action = "move_right"
+
+[node name="Background" type="Polygon2D" parent="Controls/Right"]
+polygon = PackedVector2Array(-24, -20, 24, -20, 24, 20, -24, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="Controls/Right"]
+offset_left = -24.0
+offset_top = -20.0
+offset_right = 24.0
+offset_bottom = 20.0
+mouse_filter = 2
+text = ">"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Inspect" type="TouchScreenButton" parent="Controls"]
+position = Vector2(160, 210)
+shape = SubResource("Shape_inspect")
+shape_visible = false
+action = "hub_inspect"
+
+[node name="Background" type="Polygon2D" parent="Controls/Inspect"]
+polygon = PackedVector2Array(-40, -20, 40, -20, 40, 20, -40, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="Controls/Inspect"]
+offset_left = -40.0
+offset_top = -20.0
+offset_right = 40.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "Осмотреть"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Restart" type="TouchScreenButton" parent="Controls"]
+position = Vector2(256, 210)
+shape = SubResource("Shape_restart")
+shape_visible = false
+action = "interact"
+
+[node name="Background" type="Polygon2D" parent="Controls/Restart"]
+polygon = PackedVector2Array(-48, -20, 48, -20, 48, 20, -48, 20)
+color = Color(0.28, 0.32, 0.36, 1)
+
+[node name="Label" type="Label" parent="Controls/Restart"]
+offset_left = -48.0
+offset_top = -20.0
+offset_right = 48.0
+offset_bottom = 20.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "Новый\nпроход"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RoofDoor" type="Polygon2D" parent="."]
+visible = false
+position = Vector2(160, 155)
+polygon = PackedVector2Array(-12, -22, 12, -22, 12, 22, -12, 22)
+color = Color(0.5, 0.55, 0.6, 1)

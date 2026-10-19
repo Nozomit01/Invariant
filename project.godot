@@ -44,6 +44,10 @@ dialogue_choice_3={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":51)]
 }
+hub_inspect={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":32)]
+}
 
 [input_devices]
 

@@ -50,9 +50,20 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-		_active_touches.clear()
-		_try_finish_player_close.call_deferred()
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_release_focus_input.call_deferred()
+
+
+func _release_focus_input() -> void:
+	_active_touches.clear()
+	# Godot retains TouchScreenButton finger ownership if the OS loses release.
+	# Preserve visibility, but reset the actual controls as well as our tracker.
+	for button in find_children("*", "TouchScreenButton", true, false):
+		if button.visible:
+			button.hide()
+			button.show()
+	SceneSwitch.release_pressed_input()
+	_try_finish_player_close()
 
 
 func _unhandled_input(event: InputEvent) -> void:

@@ -137,6 +137,28 @@ func _run() -> void:
 	_mouse(back.global_position, false)
 	await _wait_device(hub, hub_script.DeviceState.CLOSED)
 	_check(hub.phase == hub_script.Phase.IDLE, "mouse close consumes its input without restarting")
+	# A lost OS release must reset the actual TouchScreenButton finger owner.
+	_touch(0, bag.global_position, true)
+	await _wait_device(hub, hub_script.DeviceState.OPEN)
+	_touch(1, back.global_position, true)
+	await _frames(24)
+	root.propagate_notification(Node.NOTIFICATION_APPLICATION_FOCUS_OUT)
+	await _frames()
+	root.propagate_notification(Node.NOTIFICATION_APPLICATION_FOCUS_IN)
+	_check(hub.device_state == hub_script.DeviceState.CLOSED and not bag.is_pressed(), "focus loss releases the bag's captured finger")
+	_touch(0, bag.global_position, true)
+	if not await _wait_device(hub, hub_script.DeviceState.OPEN):
+		quit(1)
+		return
+	_check(hub.get_node("PlayerView").visible, "fresh touch reopens the bag after focus loss")
+	root.propagate_notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_OUT)
+	await _frames()
+	root.propagate_notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_IN)
+	_touch(0, back.global_position, true)
+	await _frames()
+	_touch(0, back.global_position, false)
+	await _wait_device(hub, hub_script.DeviceState.CLOSED)
+	_check(not back.is_pressed() and hub.phase == hub_script.Phase.IDLE, "focus loss while open preserves working Back and hub")
 	# Wide logical viewport and disabled content controls: no invented playback.
 	root.size = Vector2i(2400, 1080)
 	await _tap_key(KEY_ESCAPE)

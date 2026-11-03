@@ -77,6 +77,24 @@ func show_reaction(text: String) -> void:
 	line.text = text
 
 
+func _unhandled_input(event: InputEvent) -> void:
+	if not is_visible_in_tree() or not awaiting_choice:
+		return
+	if not event is InputEventMouseButton or event.button_index != MOUSE_BUTTON_LEFT or not event.pressed:
+		return
+	# TouchScreenButton handles fingers; desktop clicks use the same hit shapes.
+	for index in range(choices.size()):
+		var button := choices[index]
+		if not button.is_visible_in_tree():
+			continue
+		var shape := button.shape as RectangleShape2D
+		var local_position: Vector2 = button.get_global_transform_with_canvas().affine_inverse() * event.position
+		if Rect2(-shape.size * 0.5, shape.size).has_point(local_position):
+			choose(index)
+			get_viewport().set_input_as_handled()
+			return
+
+
 func _show_choices(show_choices: bool) -> void:
 	for button in choices:
 		button.visible = show_choices

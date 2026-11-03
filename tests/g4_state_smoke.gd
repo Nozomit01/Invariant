@@ -71,6 +71,7 @@ func _run() -> void:
 	_check(replay.snapshot() != initial, "model instances do not share state")
 
 	var rooftop := (load("res://scenes/rooftop.tscn") as PackedScene).instantiate()
+	rooftop.dialogue_pages = preload("res://data/dialogue/g3_test_dialogue.gd").pages()
 	root.add_child(rooftop)
 	await _frames()
 	var player := rooftop.get_node("PLACEHOLDER_NON_CANON") as Node2D

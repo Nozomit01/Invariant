@@ -46,6 +46,7 @@ func _touch(index: int, position: Vector2, pressed: bool) -> void:
 
 func _run() -> void:
 	var rooftop := (load("res://scenes/rooftop.tscn") as PackedScene).instantiate()
+	rooftop.dialogue_pages = preload("res://data/dialogue/g3_test_dialogue.gd").pages()
 	root.add_child(rooftop)
 	await _frames()
 	if not rooftop.has_node("UI/Dialogue"):

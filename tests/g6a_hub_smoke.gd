@@ -59,6 +59,7 @@ func _run() -> void:
 	var initial: Dictionary = first.run_state.snapshot()
 	for cycle in range(3):
 		var roof = current_scene
+		roof.dialogue_pages = preload("res://data/dialogue/g3_test_dialogue.gd").pages()
 		_check(roof.scene_file_path == ROOF and roof.run_state.snapshot() == initial, "fresh rooftop state in cycle " + str(cycle))
 		roof.get_node("PLACEHOLDER_NON_CANON").position.x = 236.0
 		await _frames()

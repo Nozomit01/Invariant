@@ -40,6 +40,7 @@ func _key(code: Key, pressed: bool) -> void:
 func _run() -> void:
 	for window_focus in [false, true]:
 		var roof = load("res://scenes/rooftop.tscn").instantiate()
+		roof.dialogue_pages = preload("res://data/dialogue/g3_test_dialogue.gd").pages()
 		root.add_child(roof)
 		current_scene = roof
 		await _frames()

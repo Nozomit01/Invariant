@@ -3,8 +3,6 @@ extends Node2D
 
 signal choice_selected(index: int)
 
-const DATA = preload("res://data/dialogue/g3_test_dialogue.gd")
-
 var awaiting_choice := false
 var line := Label.new()
 var choices: Array[TouchScreenButton] = []
@@ -12,13 +10,13 @@ var choices: Array[TouchScreenButton] = []
 
 func _ready() -> void:
 	line.name = "Line"
-	line.position = Vector2(12, 28)
-	line.size = Vector2(296, 28)
+	line.position = Vector2(12, 26)
+	line.size = Vector2(296, 32)
 	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	line.add_theme_font_size_override("font_size", 10)
 	add_child(line)
-	for index in range(DATA.CHOICES.size()):
+	for index in range(3):
 		var button := TouchScreenButton.new()
 		button.name = "Choice" + str(index + 1)
 		button.position = Vector2(160, 74 + index * 34)
@@ -36,7 +34,6 @@ func _ready() -> void:
 		label.name = "Label"
 		label.position = Vector2(-144, -15)
 		label.size = Vector2(288, 30)
-		label.text = DATA.CHOICES[index]["label"]
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		label.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -47,11 +44,11 @@ func _ready() -> void:
 	stop()
 
 
-func start(demo_page: int = 0) -> void:
-	line.text = DATA.OPENING
-	for index in range(2):
+func start(text: String, options: Array) -> void:
+	line.text = text
+	for index in range(choices.size()):
 		var label := choices[index].get_node("Label") as Label
-		label.text = DATA.DEMOS[demo_page][index]["label"]
+		label.text = options[index]["label"]
 	awaiting_choice = true
 	visible = true
 	_show_choices(true)
@@ -65,9 +62,8 @@ func stop() -> void:
 
 
 func choose(index: int) -> void:
-	if not awaiting_choice or index < 0 or index >= DATA.CHOICES.size():
+	if not awaiting_choice or index < 0 or index >= choices.size():
 		return
-	line.text = DATA.CHOICES[index]["reaction"]
 	awaiting_choice = false
 	_show_choices(false)
 	choice_selected.emit(index)

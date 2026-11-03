@@ -77,6 +77,7 @@ func _run() -> void:
 	var initial: Dictionary = first.run_state.snapshot()
 	for cycle in range(4):
 		var rooftop = current_scene
+		rooftop.dialogue_pages = preload("res://data/dialogue/g3_test_dialogue.gd").pages()
 		_check(rooftop.scene_file_path == ROOF and _scene_count() == 1, "one rooftop at cycle " + str(cycle))
 		_check(rooftop.run_state.snapshot() == initial and rooftop.demo_page == 0, "fresh G4 state and dialogue context")
 		var player := rooftop.get_node("PLACEHOLDER_NON_CANON") as Node2D

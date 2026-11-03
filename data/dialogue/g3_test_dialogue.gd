@@ -48,3 +48,16 @@ const REACTIONS := {
 		&"repeated": "PLACEHOLDER_NON_CANON\nТест: реакция стала ещё суше.",
 	},
 }
+
+
+# Legacy diagnostic pages injected by tests only; not used by the normal scene.
+static func pages() -> Array:
+	var result: Array = []
+	for page_index in range(DEMOS.size()):
+		var options: Array = []
+		for item in DEMOS[page_index]:
+			options.append({"label": item["label"], "reply": "", "event": item["event"],
+				"replies": REACTIONS[item["event"]], "next": (page_index + 1) % DEMOS.size()})
+		options.append({"label": CHOICES[2]["label"], "reply": CHOICES[2]["reaction"], "next": page_index})
+		result.append({"line": OPENING, "choices": options})
+	return result

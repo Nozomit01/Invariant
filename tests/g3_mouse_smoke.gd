@@ -57,6 +57,7 @@ func _open(roof: Node) -> void:
 
 func _run() -> void:
 	var roof = load("res://scenes/rooftop.tscn").instantiate()
+	roof.dialogue_pages = preload("res://data/dialogue/g3_test_dialogue.gd").pages()
 	root.add_child(roof)
 	current_scene = roof
 	await _frames()

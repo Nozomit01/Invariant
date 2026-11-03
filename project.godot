@@ -48,6 +48,10 @@ hub_inspect={
 "deadzone": 0.2,
 "events": [Object(InputEventKey,"physical_keycode":32)]
 }
+hub_player_toggle={
+"deadzone": 0.2,
+"events": [Object(InputEventKey,"physical_keycode":4194305)]
+}
 
 [input_devices]
 

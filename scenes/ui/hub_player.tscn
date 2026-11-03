@@ -1,0 +1,111 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/hub_player.gd" id="1_player"]
+
+[sub_resource type="RectangleShape2D" id="Shape_back"]
+size = Vector2(52, 32)
+
+[node name="PlayerView" type="Node2D"]
+visible = false
+z_index = 100
+script = ExtResource("1_player")
+
+[node name="Body_PLACEHOLDER_NON_CANON" type="Polygon2D" parent="."]
+polygon = PackedVector2Array(44, 30, 276, 30, 276, 190, 44, 190)
+color = Color(0.26, 0.29, 0.32, 1)
+
+[node name="Display" type="ColorRect" parent="."]
+offset_left = 56.0
+offset_top = 42.0
+offset_right = 264.0
+offset_bottom = 98.0
+mouse_filter = 2
+color = Color(0.10, 0.13, 0.15, 1)
+
+[node name="Label" type="Label" parent="Display"]
+offset_left = 4.0
+offset_top = 4.0
+offset_right = 204.0
+offset_bottom = 52.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "PLACEHOLDER_NON_CANON\nПлеер\nКонтент пока недоступен"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContentButtons" type="Control" parent="."]
+mouse_filter = 2
+
+[node name="PlayPause" type="Button" parent="ContentButtons"]
+offset_left = 56.0
+offset_top = 108.0
+offset_right = 128.0
+offset_bottom = 136.0
+theme_override_font_sizes/font_size = 10
+disabled = true
+text = "Play / Pause"
+
+[node name="Previous" type="Button" parent="ContentButtons"]
+offset_left = 136.0
+offset_top = 108.0
+offset_right = 196.0
+offset_bottom = 136.0
+theme_override_font_sizes/font_size = 10
+disabled = true
+text = "Prev"
+
+[node name="Next" type="Button" parent="ContentButtons"]
+offset_left = 204.0
+offset_top = 108.0
+offset_right = 264.0
+offset_bottom = 136.0
+theme_override_font_sizes/font_size = 10
+disabled = true
+text = "Next"
+
+[node name="VolumeDown" type="Button" parent="ContentButtons"]
+offset_left = 56.0
+offset_top = 146.0
+offset_right = 96.0
+offset_bottom = 178.0
+theme_override_font_sizes/font_size = 10
+disabled = true
+text = "Vol -"
+
+[node name="VolumeUp" type="Button" parent="ContentButtons"]
+offset_left = 104.0
+offset_top = 146.0
+offset_right = 144.0
+offset_bottom = 178.0
+theme_override_font_sizes/font_size = 10
+disabled = true
+text = "Vol +"
+
+[node name="Menu" type="Button" parent="ContentButtons"]
+offset_left = 152.0
+offset_top = 146.0
+offset_right = 204.0
+offset_bottom = 178.0
+theme_override_font_sizes/font_size = 10
+disabled = true
+text = "Menu"
+
+[node name="Back" type="TouchScreenButton" parent="."]
+position = Vector2(238, 162)
+shape = SubResource("Shape_back")
+shape_visible = false
+
+[node name="Body" type="Polygon2D" parent="Back"]
+polygon = PackedVector2Array(-26, -16, 26, -16, 26, 16, -26, 16)
+color = Color(0.40, 0.44, 0.48, 1)
+
+[node name="Label" type="Label" parent="Back"]
+offset_left = -26.0
+offset_top = -16.0
+offset_right = 26.0
+offset_bottom = 16.0
+mouse_filter = 2
+theme_override_font_sizes/font_size = 10
+text = "Back"
+horizontal_alignment = 1
+vertical_alignment = 1

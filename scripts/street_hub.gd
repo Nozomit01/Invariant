@@ -1,15 +1,19 @@
 extends Node2D
-## PLACEHOLDER_NON_CANON: G6a geometry, inspection and scripted return only.
+## PLACEHOLDER_NON_CANON: street, physical player shell and scripted return.
 
 const SceneSwitch = preload("res://scripts/technical_scene_switch.gd")
 const PREFIX := "PLACEHOLDER_NON_CANON\n"
 const POINT_NAMES := ["Улица", "Дом", "Вход"]
 enum Phase { ARRIVING, IDLE, DISCARDING, EXTINGUISHING, ENTERING, TRANSITION, ROOF_DOOR }
+enum DeviceState { CLOSED, OPENING, OPEN, CLOSING }
 
 var phase := Phase.ARRIVING
 var selected_point := 1
 var cigarette_lit := true
 var ready_for_restart := false
+var device_state := DeviceState.CLOSED
+var _active_touches: Dictionary = {}
+var _close_animation_finished := false
 
 @onready var player: Node2D = $Hub/PLACEHOLDER_NON_CANON
 @onready var cigarette: Node2D = $Hub/PLACEHOLDER_NON_CANON/Cigarette
@@ -19,6 +23,8 @@ func _ready() -> void:
 	$Hub.hide()
 	$Controls.hide()
 	$Transition.show()
+	$Hub/PLACEHOLDER_NON_CANON/BagAccess.pressed.connect(_request_player_open)
+	$PlayerView.close_requested.connect(_request_player_close)
 	_set_phase(Phase.ARRIVING, "Переход на улицу")
 	for index in range(POINT_NAMES.size()):
 		var point := $Hub/Points.get_child(index) as TouchScreenButton
@@ -33,8 +39,41 @@ func _ready() -> void:
 	_select_point(1)
 
 
+func _input(event: InputEvent) -> void:
+	# Hiding a TouchScreenButton releases its action, not the actual finger.
+	if event is InputEventScreenTouch:
+		if event.pressed:
+			_active_touches[event.index] = true
+		else:
+			_active_touches.erase(event.index)
+			_try_finish_player_close.call_deferred()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_active_touches.clear()
+		_try_finish_player_close.call_deferred()
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if phase != Phase.IDLE or event.is_echo():
+		return
+	if event.is_action_pressed("hub_player_toggle"):
+		if device_state == DeviceState.CLOSED:
+			_request_player_open()
+		elif device_state == DeviceState.OPEN:
+			_request_player_close()
+		get_viewport().set_input_as_handled()
+		return
+	if not _can_use_hub():
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		var bag := $Hub/PLACEHOLDER_NON_CANON/BagAccess as TouchScreenButton
+		var shape := bag.shape as RectangleShape2D
+		var local_position: Vector2 = bag.get_global_transform_with_canvas().affine_inverse() * event.position
+		if Rect2(-shape.size * 0.5, shape.size).has_point(local_position):
+			_request_player_open()
+			get_viewport().set_input_as_handled()
 		return
 	if event.is_action_pressed("interact"):
 		_begin_return()
@@ -47,7 +86,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _select_point(index: int) -> void:
-	if phase != Phase.IDLE:
+	if not _can_use_hub():
 		return
 	selected_point = index
 	$Inspection.text = PREFIX + "Выбрано: " + POINT_NAMES[index]
@@ -59,13 +98,59 @@ func _select_point(index: int) -> void:
 
 
 func _on_point_tapped(index: int) -> void:
-	if phase == Phase.IDLE:
+	if _can_use_hub():
 		_select_point(index)
 		_inspect()
 
 
 func _inspect() -> void:
-	$Inspection.text = PREFIX + "Осмотр: " + POINT_NAMES[selected_point] + " (заглушка)"
+	if _can_use_hub():
+		$Inspection.text = PREFIX + "Осмотр: " + POINT_NAMES[selected_point] + " (заглушка)"
+
+
+func _can_use_hub() -> bool:
+	return phase == Phase.IDLE and device_state == DeviceState.CLOSED
+
+
+func _request_player_open() -> void:
+	if not _can_use_hub():
+		return
+	device_state = DeviceState.OPENING
+	ready_for_restart = false
+	$Controls.hide()
+	$Hub/Points.hide()
+	$Inspection.hide()
+	SceneSwitch.release_pressed_input.call_deferred()
+	var held := $Hub/PLACEHOLDER_NON_CANON/HeldPlayer as Node2D
+	held.position = Vector2(12, 2)
+	held.show()
+	await _animate(held, "position", Vector2(12, -16), 0.20)
+	$PlayerView.show_device()
+	device_state = DeviceState.OPEN
+
+
+func _request_player_close() -> void:
+	if device_state != DeviceState.OPEN:
+		return
+	device_state = DeviceState.CLOSING
+	_close_animation_finished = false
+	$PlayerView.hide_device()
+	SceneSwitch.release_pressed_input.call_deferred()
+	await _animate($Hub/PLACEHOLDER_NON_CANON/HeldPlayer, "position", Vector2(12, 2), 0.20)
+	$Hub/PLACEHOLDER_NON_CANON/HeldPlayer.hide()
+	_close_animation_finished = true
+	_try_finish_player_close()
+
+
+func _try_finish_player_close() -> void:
+	if device_state != DeviceState.CLOSING or not _close_animation_finished or not _active_touches.is_empty():
+		return
+	device_state = DeviceState.CLOSED
+	_close_animation_finished = false
+	$Controls.show()
+	$Hub/Points.show()
+	$Inspection.show()
+	ready_for_restart = true
 
 
 func _set_phase(next_phase: Phase, description: String) -> void:
@@ -80,7 +165,7 @@ func _animate(node: Node, property: NodePath, destination: Variant, duration: fl
 
 
 func _begin_return() -> void:
-	if phase != Phase.IDLE:
+	if not _can_use_hub():
 		return
 	ready_for_restart = false
 	_set_phase(Phase.DISCARDING, "Выбрасывает сигарету")

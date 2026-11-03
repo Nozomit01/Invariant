@@ -14,6 +14,7 @@ const LEFT_EDGE := 22.0
 const RIGHT_EDGE := 298.0
 const INTERACTION_DISTANCE := 26.0
 const EXIT_DISTANCE := 12.0
+const SILENCE_OPENING_DELAY := 6.0 # Temporary playtest value, not canon timing.
 
 var horizontal_speed := 0.0
 var run_state = RunState.new()
@@ -23,6 +24,9 @@ var conversation_finished := false
 var smoke_stage := -1 # -1: not started, 0: invitation, 1: observation, 2: finished.
 var smoke_origin_side := 0
 var leaving := false
+var _conversation_started := false
+var _silence_opening_shown := false
+var _nearby_silence_elapsed := 0.0
 
 @onready var player: Node2D = $PLACEHOLDER_NON_CANON
 @onready var interaction_point: Node2D = $InteractionPoint
@@ -58,6 +62,9 @@ func start_new_run() -> void:
 	conversation_finished = false
 	smoke_stage = -1
 	smoke_origin_side = 0
+	_conversation_started = false
+	_silence_opening_shown = false
+	_nearby_silence_elapsed = 0.0
 	dialogue.stop()
 
 
@@ -90,6 +97,8 @@ func _changed_smoke_side() -> bool:
 
 
 func _continue_conversation() -> void:
+	_conversation_started = true
+	_nearby_silence_elapsed = 0.0
 	if not conversation_finished:
 		var page: Dictionary = dialogue_pages[demo_page]
 		dialogue.start(page["line"], page["choices"])
@@ -99,6 +108,17 @@ func _continue_conversation() -> void:
 			smoke_stage = 0
 		var page: Dictionary = SmokeData.page(smoke_stage, _changed_smoke_side())
 		dialogue.start(page["line"], page["choices"])
+
+
+func _update_silence_opening(delta: float) -> void:
+	if _conversation_started or _silence_opening_shown or dialogue.visible or not SceneSwitch.has_focus():
+		return
+	_nearby_silence_elapsed += delta
+	if _nearby_silence_elapsed < SILENCE_OPENING_DELAY:
+		return
+	_silence_opening_shown = true
+	dialogue.show_reaction(DialogueData.SILENCE_OPENING)
+	dialogue.show()
 
 
 func _leave_roof() -> void:
@@ -124,13 +144,14 @@ func _physics_process(delta: float) -> void:
 	$UI/ExitPrompt.visible = near_exit
 	$UI/Interact/Label.text = "Уйти" if near_exit else "Действие"
 	if not near_exit and dialogue.visible and not dialogue.awaiting_choice and (not conversation_finished or smoke_stage != 2):
-		$UI/Interact/Label.text = "Дальше"
+		$UI/Interact/Label.text = "Ответить" if not _conversation_started else "Дальше"
 	if near_exit and Input.is_action_just_pressed("interact"):
 		leaving = true
 		dialogue.stop()
 		_leave_roof.call_deferred()
 		return
 	if not nearby:
+		_nearby_silence_elapsed = 0.0
 		dialogue.stop()
 	elif Input.is_action_just_pressed("interact"):
 		_continue_conversation()
@@ -139,6 +160,9 @@ func _physics_process(delta: float) -> void:
 			if Input.is_action_just_pressed("dialogue_choice_" + str(index + 1)):
 				dialogue.choose(index)
 				break
+	else:
+		# Explicit interaction and choices above always win over the timer.
+		_update_silence_opening(delta)
 	prompt.visible = nearby and not dialogue.visible and (not conversation_finished or smoke_stage != 2)
 	$UI/PointLabel.visible = not dialogue.visible
 	$UI/ExitLabel.visible = not dialogue.visible

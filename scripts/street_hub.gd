@@ -79,12 +79,26 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not _can_use_hub():
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		# TouchScreenButton already handles the finger that generated this mouse event.
+		if event.device == -1:
+			return
 		var bag := $Hub/PLACEHOLDER_NON_CANON/BagAccess as TouchScreenButton
 		var shape := bag.shape as RectangleShape2D
 		var local_position: Vector2 = bag.get_global_transform_with_canvas().affine_inverse() * event.position
 		if Rect2(-shape.size * 0.5, shape.size).has_point(local_position):
 			_request_player_open()
 			get_viewport().set_input_as_handled()
+			return
+		for index in range(POINT_NAMES.size()):
+			var point := $Hub/Points.get_child(index) as TouchScreenButton
+			if not point.is_visible_in_tree():
+				continue
+			var point_shape := point.shape as RectangleShape2D
+			var point_position: Vector2 = point.get_global_transform_with_canvas().affine_inverse() * event.position
+			if Rect2(-point_shape.size * 0.5, point_shape.size).has_point(point_position):
+				_on_point_tapped(index)
+				get_viewport().set_input_as_handled()
+				return
 		return
 	if event.is_action_pressed("interact"):
 		_begin_return()

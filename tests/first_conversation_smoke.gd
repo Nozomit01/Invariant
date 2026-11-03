@@ -141,7 +141,7 @@ func _run() -> void:
 			check(roof.conversation_finished and not dialogue.awaiting_choice and dialogue.line.text == data.PAGES[next].choices[second].reply,"touch/mouse finishes exact branch " + str([first,second]))
 			await tap(KEY_E)
 			await tap(KEY_1)
-			check(roof.conversation_finished and roof.run_state.snapshot() == snapshot and not dialogue.awaiting_choice,"completed conversation cannot restart or farm state")
+			check(roof.conversation_finished and roof.run_state.snapshot() == snapshot and not dialogue.awaiting_choice and roof.smoke_stage == 1,"completed introduction advances to new episode without replay or state farming")
 	root.size = Vector2i(320,240)
 	roof.start_new_run()
 	roof.player.position.x = 236.0
@@ -182,7 +182,7 @@ func _run() -> void:
 	roof.player.position.x = 236.0
 	await frames()
 	await tap(KEY_E)
-	check(not dialogue.visible and roof.conversation_finished,"return after completion cannot replay conversation")
+	check(dialogue.awaiting_choice and roof.conversation_finished and roof.smoke_stage == 0 and dialogue.line.text == preload("res://data/dialogue/smoke_and_space.gd").ENTRY.line,"return after introduction offers smoke episode without replaying introduction")
 	await second_question_interruptions(roof,data)
 	for page in data.PAGES:
 		dialogue.start(page.line,page.choices)

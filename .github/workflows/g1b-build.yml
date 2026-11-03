@@ -9,6 +9,10 @@ on:
       - export_presets.cfg
       - scenes/**
       - scripts/**
+      - tests/**
+      - data/**
+      - assets/**
+      - icon.svg
       - .github/workflows/g1b-build.yml
 
 permissions:
@@ -102,6 +106,28 @@ jobs:
           godot --headless --path . --editor --import --quit 2>&1 | tee build/logs/import.log
           godot --headless --path . --quit-after 60 2>&1 | tee build/logs/start.log
           if grep -E '(^ERROR:|SCRIPT ERROR:|Parse Error:)' build/logs/import.log build/logs/start.log; then exit 1; fi
+
+      - name: Run gameplay smoke tests
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          tests=(tests/*_smoke.gd)
+          if (( ${#tests[@]} == 0 )); then
+            echo '::error::No gameplay smoke tests found'
+            exit 1
+          fi
+          mkdir -p build/logs
+          for test in "${tests[@]}"; do
+            log="build/logs/$(basename "$test" .gd).log"
+            echo "Running $test"
+            timeout --kill-after=10s 120s godot --headless --path . --script "$test" 2>&1 | tee "$log"
+            if grep -E '(^ERROR:|SCRIPT ERROR:|Parse Error:|^FAIL:)' "$log"; then exit 1; fi
+            if ! grep -q '^PASS:' "$log"; then
+              echo "::error::No passing assertions reported by $test"
+              exit 1
+            fi
+          done
 
       - name: Export Android debug APK
         run: |

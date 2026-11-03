@@ -64,6 +64,32 @@ func run() -> void:
 	var ui = roof.get_node("UI/Dialogue")
 	check(roof.smoke_stage == -1,"episode is unavailable before introduction")
 	for origin in [224.0,248.0]:
+		await prepare(roof,origin)
+		var initial_side: int = roof.smoke_origin_side
+		var state_before: Dictionary = roof.run_state.snapshot()
+		check(roof.smoke_stage == 0 and ui.awaiting_choice and ui.line.text == data.ENTRY.line,"invitation is open before leaving without a choice")
+		await walk_to(roof,180.0 if origin < 236 else 280.0)
+		check(not ui.visible and roof.smoke_stage == 0,"departure from invitation does not choose or advance")
+		await walk_to(roof,248.0 if origin < 236 else 224.0)
+		check(not ui.visible,"opposite-side return does not reopen invitation automatically")
+		await tap(KEY_E)
+		check(ui.line.text == data.MOVED.line and ui.awaiting_choice,"reopened invitation describes actual opposite side " + str(origin))
+		check(roof.smoke_stage == 0 and roof.smoke_origin_side == initial_side and roof.run_state.snapshot() == state_before,"reopening preserves original side, pending choice and hidden state")
+		for i in range(3):
+			check(ui.choices[i].get_node("Label").text == data.ENTRY.choices[i].label,"contextual invitation preserves choice " + str(i))
+		await tap(KEY_E)
+		check(ui.line.text == data.MOVED.line and roof.smoke_stage == 0,"repeated interaction keeps contextual invitation pending")
+		await walk_to(roof,origin)
+		await tap(KEY_E)
+		check(ui.line.text == data.ENTRY.line and roof.smoke_origin_side == initial_side,"return to original side restores original invitation")
+		await walk_to(roof,248.0 if origin < 236 else 224.0)
+		await tap(KEY_E)
+		await tap(KEY_1)
+		check(roof.smoke_stage == 1 and ui.line.text == data.ENTRY.choices[0].reply,"only explicit choice advances reopened invitation")
+		await tap(KEY_E)
+		check(ui.line.text == data.MOVED.line and roof.run_state.snapshot() == state_before,"observation keeps actual crossing after resumed invitation")
+	check(data.ENTRY.line == "Она: Тебе весь дым в лицо.\nМожешь встать с другой стороны.","contextual pages do not mutate shared invitation data")
+	for origin in [224.0,248.0]:
 		for moved in [false,true]:
 			for answer in range(3):
 				await prepare(roof,origin)

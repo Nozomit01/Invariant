@@ -26,5 +26,10 @@ const UNMOVED := {
 }
 static func page(stage: int, moved: bool) -> Dictionary:
 	if stage == 0:
+		if moved:
+			# Refresh the observation without selecting a choice or rewriting the origin.
+			var invitation := ENTRY.duplicate()
+			invitation["line"] = MOVED["line"]
+			return invitation
 		return ENTRY
 	return MOVED if moved else UNMOVED

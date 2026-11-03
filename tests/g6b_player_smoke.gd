@@ -6,6 +6,14 @@ const ROOF := "res://scenes/rooftop.tscn"
 var failures := 0
 
 
+class MouseProbe extends Node:
+	var emulated_presses := 0
+
+	func _input(event: InputEvent) -> void:
+		if event is InputEventMouseButton and event.device == -1 and event.pressed:
+			emulated_presses += 1
+
+
 func _initialize() -> void:
 	_run.call_deferred()
 
@@ -51,6 +59,17 @@ func _mouse(position: Vector2, pressed: bool) -> void:
 	event.position = position
 	event.pressed = pressed
 	root.push_input(event, true)
+
+
+func _parsed_touch(index: int, position: Vector2, pressed: bool, canceled: bool = false) -> void:
+	# Unlike push_input, exercise the project's touch-to-mouse Input pipeline.
+	var event := InputEventScreenTouch.new()
+	event.index = index
+	event.position = position
+	event.pressed = pressed
+	event.canceled = canceled
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
 
 
 func _wait_device(hub: Node, state: int) -> bool:
@@ -125,6 +144,52 @@ func _run() -> void:
 	_touch(0, bag.global_position, false)
 	await _frames()
 	_check(hub.device_state == hub_script.DeviceState.CLOSED and hub.phase == hub_script.Phase.IDLE, "last finger release completes safe close")
+	# The real Input pipeline must deliver emulated mouse events without a second action.
+	var mouse_probe := MouseProbe.new()
+	hub.add_child(mouse_probe)
+	_parsed_touch(0, bag.global_position, true)
+	await _frames()
+	_parsed_touch(0, bag.global_position, false)
+	if not await _wait_device(hub, hub_script.DeviceState.OPEN):
+		quit(1)
+		return
+	_check(mouse_probe.emulated_presses > 0, "parsed touch exercises mouse emulation")
+	_check(hub.phase == hub_script.Phase.IDLE and hub.selected_point == selected and hub.get_node("PlayerView").visible, "touch plus emulated mouse opens once without a hub action")
+	var presses_before_back := mouse_probe.emulated_presses
+	_parsed_touch(0, back.global_position, true)
+	await _frames()
+	_parsed_touch(0, back.global_position, false)
+	await _wait_device(hub, hub_script.DeviceState.CLOSED)
+	_check(mouse_probe.emulated_presses > presses_before_back, "Back tap also exercises mouse emulation")
+	_check(hub.phase == hub_script.Phase.IDLE and hub.get_node("Controls").visible and not hub.get_node("PlayerView").visible, "emulated Back closes without reopening or restarting")
+	mouse_probe.queue_free()
+	await _frames()
+	# Cancellation is an OS release, including when other fingers are still held.
+	_parsed_touch(0, bag.global_position, true)
+	await _frames()
+	_parsed_touch(0, bag.global_position, false)
+	await _wait_device(hub, hub_script.DeviceState.OPEN)
+	_parsed_touch(0, Vector2(256, 210), true)
+	_parsed_touch(1, Vector2(32, 150), true)
+	_parsed_touch(2, back.global_position, true)
+	await _frames(24)
+	_parsed_touch(2, back.global_position, false)
+	_parsed_touch(0, Vector2(256, 210), false, true)
+	await _frames()
+	_check(hub.device_state == hub_script.DeviceState.CLOSING and not hub.get_node("Controls").visible, "partial cancellation must not restore hub controls while another finger is held")
+	_parsed_touch(1, Vector2(32, 150), false, true)
+	await _frames()
+	_check(hub.device_state == hub_script.DeviceState.CLOSED and hub.get_node("Controls").visible and hub.ready_for_restart, "last cancellation restores usable hub controls")
+	_check(hub.phase == hub_script.Phase.IDLE and hub.get_node("Hub/PLACEHOLDER_NON_CANON").position == origin and hub.cigarette_lit, "canceling a finger over restart cannot start a new run")
+	_parsed_touch(0, bag.global_position, true)
+	await _frames()
+	_parsed_touch(0, bag.global_position, false)
+	if not await _wait_device(hub, hub_script.DeviceState.OPEN):
+		quit(1)
+		return
+	_check(hub.get_node("PlayerView").visible, "fresh tap opens player after canceled touches")
+	await _tap_key(KEY_ESCAPE)
+	await _wait_device(hub, hub_script.DeviceState.CLOSED)
 	# Genuine mouse input must work as well as Android touch.
 	_mouse(bag.global_position, true)
 	await _frames()

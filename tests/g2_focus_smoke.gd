@@ -46,6 +46,8 @@ func _run() -> void:
 		var right := roof.get_node("UI/Right") as TouchScreenButton
 		var interact := roof.get_node("UI/Interact") as TouchScreenButton
 		var dialogue = roof.get_node("UI/Dialogue")
+		var selections: Array[int] = []
+		dialogue.choice_selected.connect(func(index: int): selections.append(index))
 		roof.player.position.x = 236.0
 		_touch(0, right.position, true)
 		_touch(1, interact.position, true)
@@ -68,6 +70,30 @@ func _run() -> void:
 		root.propagate_notification(Node.NOTIFICATION_WM_WINDOW_FOCUS_IN if window_focus else Node.NOTIFICATION_APPLICATION_FOCUS_IN)
 		_check(roof.run_state.snapshot() == state_before and roof.demo_page == page_before, "focus change does not choose a reply or change state " + str(window_focus))
 		_check(dialogue.awaiting_choice and dialogue.choices[0].visible, "pending dialogue stays available after focus change " + str(window_focus))
+		# Check native touch independently: mouse emulation must not mask a broken button.
+		var original_emulation := Input.emulate_mouse_from_touch
+		for emulate_mouse in [false, true]:
+			Input.emulate_mouse_from_touch = emulate_mouse
+			if not dialogue.awaiting_choice:
+				_touch(8, interact.position, true)
+				await _frames()
+				_touch(8, interact.position, false)
+				await _frames()
+			var index := 1 if emulate_mouse else 0
+			var before := selections.size()
+			var choice := dialogue.choices[index] as TouchScreenButton
+			var description := " window=" + str(window_focus) + " mouse_emulation=" + str(emulate_mouse)
+			_touch(9, choice.global_position, true)
+			await _frames()
+			_touch(9, choice.global_position, false)
+			await _frames()
+			_check(selections.size() == before + 1 and selections.back() == index and not dialogue.awaiting_choice, "touch chooses one reply after focus returns" + description)
+			_check(not choice.visible and not choice.is_pressed() and not Input.is_action_pressed("dialogue_choice_" + str(index + 1)), "reply hides and releases its touch action" + description)
+			var state_after: Dictionary = roof.run_state.snapshot()
+			_touch(9, choice.global_position, false)
+			await _frames()
+			_check(selections.size() == before + 1 and roof.run_state.snapshot() == state_after, "late release cannot repeat reply or state change" + description)
+		Input.emulate_mouse_from_touch = original_emulation
 		# New finger IDs: a control still owned by the old finger would ignore these.
 		roof.player.position.x = 150.0
 		await _frames(16)

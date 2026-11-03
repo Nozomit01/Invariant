@@ -196,7 +196,7 @@ func _run() -> void:
 	roof.player.position.x = 34.0
 	await frames()
 	await tap(KEY_E)
-	await frames(30)
+	await frames(100) # Includes the ordinary-leave presentation before hub control.
 	check(current_scene.scene_file_path == "res://scenes/street_hub.tscn","conversation allows leaving to hub")
 	await tap(KEY_E)
 	await frames(100)

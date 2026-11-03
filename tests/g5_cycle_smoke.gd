@@ -113,7 +113,7 @@ func _run() -> void:
 		_check(hub.get_node("Transition").visible and not hub.get_node("Hub").visible, "brief technical transition precedes hub controls")
 		_check(old_roof.get_ref() == null and _scene_count() == 1, "old roof freed without duplicate scenes")
 		_check(_clean_input(), "exit clears held keyboard or multitouch actions")
-		await _frames(30)
+		await _frames(100) # Includes the ordinary-leave presentation.
 		_check(current_scene == hub and hub.ready_for_restart, "held exit input does not skip the hub")
 		var hub_player := hub.get_node("Hub/PLACEHOLDER_NON_CANON") as Node2D
 		var fixed_position := hub_player.position

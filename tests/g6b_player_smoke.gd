@@ -259,7 +259,7 @@ func _run() -> void:
 			current_scene.get_node("PLACEHOLDER_NON_CANON").position.x = 34.0
 			await _frames()
 			await _tap_key(KEY_E)
-			await _frames(30)
+			await _frames(100) # Includes ordinary leave before the next hub.
 			hub = current_scene
 			_check(hub.scene_file_path == HUB and hub.device_state == hub_script.DeviceState.CLOSED, "next hub starts with player safely closed")
 			await _tap_key(KEY_ESCAPE)

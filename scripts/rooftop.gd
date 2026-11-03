@@ -5,6 +5,7 @@ const RunState = preload("res://scripts/state/run_state.gd")
 const DialogueData = preload("res://data/dialogue/first_conversation.gd")
 const SmokeData = preload("res://data/dialogue/smoke_and_space.gd")
 const SceneSwitch = preload("res://scripts/technical_scene_switch.gd")
+const SessionOutcomes = preload("res://scripts/state/session_outcomes.gd")
 
 const SPEED := 80.0
 const ACCELERATION := 520.0
@@ -31,11 +32,13 @@ var leaving := false
 
 
 func _ready() -> void:
+	SceneSwitch.observe_window(get_tree().root)
 	dialogue.choice_selected.connect(_on_dialogue_choice)
 	start_new_run()
 
 
 func _notification(what: int) -> void:
+	SceneSwitch.track_focus(what)
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		_release_focus_input.call_deferred()
 
@@ -98,6 +101,13 @@ func _continue_conversation() -> void:
 		dialogue.start(page["line"], page["choices"])
 
 
+func _leave_roof() -> void:
+	var departure_id := SessionOutcomes.begin_leave()
+	if SceneSwitch.go_to(self, "res://scenes/street_hub.tscn") != OK:
+		SessionOutcomes.cancel_leave(departure_id)
+		leaving = false
+
+
 func _physics_process(delta: float) -> void:
 	if leaving:
 		return
@@ -118,7 +128,7 @@ func _physics_process(delta: float) -> void:
 	if near_exit and Input.is_action_just_pressed("interact"):
 		leaving = true
 		dialogue.stop()
-		SceneSwitch.go_to.call_deferred(self, "res://scenes/street_hub.tscn")
+		_leave_roof.call_deferred()
 		return
 	if not nearby:
 		dialogue.stop()

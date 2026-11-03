@@ -69,7 +69,7 @@ func _run() -> void:
 		roof.get_node("PLACEHOLDER_NON_CANON").position.x = 34.0
 		await _frames()
 		await _tap_key(KEY_E)
-		await _frames(30)
+		await _frames(100) # Includes the ordinary-leave presentation.
 		var hub = current_scene
 		if hub == null or hub.scene_file_path != HUB:
 			_check(false, "rooftop exit reaches the street hub")

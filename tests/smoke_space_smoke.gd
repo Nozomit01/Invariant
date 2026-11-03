@@ -174,7 +174,7 @@ func run() -> void:
 	roof.player.position.x = 34.0
 	await frames()
 	await tap(KEY_E)
-	await frames(30)
+	await frames(100) # Includes the ordinary-leave presentation before hub control.
 	await tap(KEY_E)
 	await frames(100)
 	check(current_scene.scene_file_path == "res://scenes/rooftop.tscn" and current_scene.smoke_stage == -1 and not current_scene.conversation_finished,"real new cycle resets both episodes")

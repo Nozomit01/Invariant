@@ -2,10 +2,16 @@ extends Node2D
 ## PLACEHOLDER_NON_CANON: street, physical player shell and scripted return.
 
 const SceneSwitch = preload("res://scripts/technical_scene_switch.gd")
+const SessionOutcomes = preload("res://scripts/state/session_outcomes.gd")
 const PREFIX := "PLACEHOLDER_NON_CANON\n"
 const POINT_NAMES := ["Улица", "Дом", "Вход"]
 enum Phase { ARRIVING, IDLE, DISCARDING, EXTINGUISHING, ENTERING, TRANSITION, ROOF_DOOR }
 enum DeviceState { CLOSED, OPENING, OPEN, CLOSING }
+enum LeaveStage { NONE, LEAVING, WAITING, IMPACT_CUE, TURNING, TRANSITION, DONE }
+const LEAVE_DURATIONS := [0.0, 0.25, 0.35, 0.20, 0.25, 0.25]
+var leave_stage := LeaveStage.NONE
+var _leave_id := 0
+var _leave_elapsed := 0.0
 
 var phase := Phase.ARRIVING
 var selected_point := 1
@@ -20,6 +26,7 @@ var _close_animation_finished := false
 
 
 func _ready() -> void:
+	SceneSwitch.observe_window(get_tree().root)
 	$Hub.hide()
 	$Controls.hide()
 	$Transition.show()
@@ -29,14 +36,68 @@ func _ready() -> void:
 	for index in range(POINT_NAMES.size()):
 		var point := $Hub/Points.get_child(index) as TouchScreenButton
 		point.pressed.connect(_on_point_tapped.bind(index))
+	_leave_id = SessionOutcomes.claim_leave()
+	if _leave_id != 0:
+		$Hub/Points.hide()
+		$Inspection.hide()
+		_set_leave_stage(LeaveStage.LEAVING)
+		return
 	await get_tree().create_timer(0.35).timeout
+	_activate_hub()
+
+
+func _activate_hub() -> void:
 	SceneSwitch.release_pressed_input()
 	$Transition.hide()
 	$Hub.show()
+	$Hub/Points.show()
+	$Inspection.show()
 	$Controls.show()
 	_set_phase(Phase.IDLE, "Стоит и курит")
 	ready_for_restart = true
 	_select_point(1)
+
+
+func _process(delta: float) -> void:
+	if leave_stage <= LeaveStage.NONE or leave_stage >= LeaveStage.DONE or not SceneSwitch.has_focus():
+		return
+	_leave_elapsed += delta
+	if _leave_elapsed < LEAVE_DURATIONS[leave_stage]:
+		return
+	if leave_stage == LeaveStage.TRANSITION:
+		SessionOutcomes.complete_leave(_leave_id)
+		_leave_id = 0
+		leave_stage = LeaveStage.DONE
+		_activate_hub()
+	else:
+		_set_leave_stage(leave_stage + 1)
+
+
+func _set_leave_stage(stage: LeaveStage) -> void:
+	leave_stage = stage
+	_leave_elapsed = 0.0
+	match stage:
+		LeaveStage.LEAVING:
+			$Transition.text = PREFIX + "Выход из дома"
+		LeaveStage.WAITING:
+			$Transition.hide()
+			$Hub.show()
+			$Hub/PLACEHOLDER_NON_CANON/Look.scale.x = -1.0
+			$Status.text = PREFIX + "Кадр на герое"
+		LeaveStage.IMPACT_CUE:
+			$Status.text = PREFIX + "Место звука удара (аудио нет)"
+		LeaveStage.TURNING:
+			$Hub/PLACEHOLDER_NON_CANON/Look.scale.x = 1.0
+			$Status.text = PREFIX + "Герой оборачивается"
+		LeaveStage.TRANSITION:
+			$Hub.hide()
+			$Transition.text = PREFIX + "Переход после ухода"
+			$Transition.show()
+
+
+func _exit_tree() -> void:
+	if _leave_id != 0:
+		SessionOutcomes.cancel_leave(_leave_id)
 
 
 func _input(event: InputEvent) -> void:
@@ -50,6 +111,7 @@ func _input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
+	SceneSwitch.track_focus(what)
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		_release_focus_input.call_deferred()
 

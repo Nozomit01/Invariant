@@ -20,13 +20,70 @@ func tap(code: Key) -> void:
 	await frames()
 	key(code,false)
 	await frames()
-func touch(node: Node2D, pressed: bool) -> void:
+func touch(node: Node2D, pressed: bool, finger := 3) -> void:
 	var e := InputEventScreenTouch.new()
-	e.index = 3
+	e.index = finger
 	e.position = root.get_screen_transform() * node.global_position
 	e.pressed = pressed
 	Input.parse_input_event(e)
 	Input.flush_buffered_events()
+func second_question_interruptions(roof: Node, data: Script) -> void:
+	var dialogue = roof.get_node("UI/Dialogue")
+	for first in [0,1]:
+		roof.start_new_run()
+		roof.player.position.x = 236.0
+		await frames()
+		await tap(KEY_E)
+		await tap(KEY_1 if first == 0 else KEY_2)
+		await tap(KEY_E)
+		var page: int = roof.demo_page
+		var question: String = dialogue.line.text
+		var state: Dictionary = roof.run_state.snapshot()
+		check(page == first+1 and dialogue.awaiting_choice,"second question is open before interruption " + str(page))
+		key(KEY_A,true)
+		await frames(40)
+		key(KEY_A,false)
+		await frames(16)
+		check(not dialogue.visible and dialogue.line.text.is_empty() and not dialogue.awaiting_choice,"walking away clears the open second question " + str(page))
+		check(roof.demo_page == page and roof.run_state.snapshot() == state and not roof.conversation_finished,"walking away preserves second question without choosing " + str(page))
+		await tap(KEY_1)
+		touch(dialogue.choices[1],true)
+		touch(dialogue.choices[1],false)
+		await frames()
+		check(roof.demo_page == page and roof.run_state.snapshot() == state and not roof.conversation_finished,"hidden second question ignores keyboard and touch " + str(page))
+		roof.player.position.x = 236.0
+		await frames()
+		check(not dialogue.visible,"return does not reopen second question automatically " + str(page))
+		await tap(KEY_E)
+		check(dialogue.awaiting_choice and dialogue.line.text == question and dialogue.choices[0].get_node("Label").text == data.PAGES[page].choices[0].label,"interaction restores exact second question and choices " + str(page))
+		var right := roof.get_node("UI/Right") as TouchScreenButton
+		touch(right,true)
+		key(KEY_D,true)
+		await frames(2)
+		check(right.is_pressed() and Input.is_action_pressed("move_right") and dialogue.awaiting_choice,"movement button and key are held during actual second question " + str(page))
+		var lost := Node.NOTIFICATION_APPLICATION_FOCUS_OUT if first == 0 else Node.NOTIFICATION_WM_WINDOW_FOCUS_OUT
+		var restored := Node.NOTIFICATION_APPLICATION_FOCUS_IN if first == 0 else Node.NOTIFICATION_WM_WINDOW_FOCUS_IN
+		root.propagate_notification(lost)
+		await frames(16)
+		root.propagate_notification(restored)
+		check(not right.is_pressed() and not Input.is_action_pressed("move_right") and not Input.is_physical_key_pressed(KEY_D),"focus loss clears held touch and key in actual conversation " + str(page))
+		var stopped_x: float = roof.player.position.x
+		await frames(8)
+		check(is_equal_approx(roof.player.position.x,stopped_x) and stopped_x < 262.0,"lost releases cannot move hero out of conversation range " + str(page))
+		check(dialogue.awaiting_choice and dialogue.line.text == question and roof.demo_page == page and roof.run_state.snapshot() == state,"held-input focus recovery preserves exact narrative context " + str(page))
+		touch(right,true,7)
+		await frames(3)
+		check(right.is_pressed() and roof.player.position.x > stopped_x,"fresh finger can move after conversation focus recovery " + str(page))
+		touch(right,false,7)
+		touch(right,false)
+		key(KEY_D,false)
+		await frames(16)
+		check(not right.is_pressed() and not Input.is_action_pressed("move_right") and dialogue.awaiting_choice,"fresh and stale releases keep second question pending " + str(page))
+		touch(dialogue.choices[2],true,8)
+		await frames()
+		touch(dialogue.choices[2],false,8)
+		await frames()
+		check(roof.conversation_finished and dialogue.line.text == data.PAGES[page].choices[2].reply and roof.run_state.snapshot() == state,"touch silence completes restored second question once " + str(page))
 func mouse(node: Node2D, pressed: bool) -> void:
 	var e := InputEventMouseButton.new()
 	e.position = root.get_screen_transform() * node.global_position
@@ -126,6 +183,7 @@ func _run() -> void:
 	await frames()
 	await tap(KEY_E)
 	check(not dialogue.visible and roof.conversation_finished,"return after completion cannot replay conversation")
+	await second_question_interruptions(roof,data)
 	for page in data.PAGES:
 		dialogue.start(page.line,page.choices)
 		check(dialogue.line.get_minimum_size().x <= 296 and dialogue.line.get_minimum_size().y <= 32,"opening fits text area above choices")

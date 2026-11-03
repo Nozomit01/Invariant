@@ -54,6 +54,9 @@ func _activate_hub() -> void:
 	$Inspection.show()
 	$Controls.show()
 	_set_phase(Phase.IDLE, "Стоит и курит")
+	if SessionOutcomes.last_save_error != OK:
+		$Status.text = "Не удалось сохранить прогресс"
+		$Status.size.y = 28.0
 	ready_for_restart = true
 	_select_point(1)
 

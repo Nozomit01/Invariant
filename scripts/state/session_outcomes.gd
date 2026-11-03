@@ -1,5 +1,8 @@
 extends RefCounted
-## In-memory technical events only. No autoload, save file, unlocks or ending UI.
+## Session departures stay in memory; only a completed main outcome is persisted.
+const OutcomeStore = preload("res://scripts/state/outcome_store.gd")
+static var _store = OutcomeStore.new()
+static var last_save_error: Error = OK
 static var _next_id := 1
 static var _active_id := 0
 static var _claimed := false
@@ -28,7 +31,14 @@ static func complete_leave(departure_id: int) -> bool:
 		return false
 	_events.append({"departure_id": departure_id, "outcome": &"ordinary_leave", "technical_presentation": true})
 	cancel_leave(departure_id)
+	last_save_error = _store.confirm_leave()
 	return true
 
 static func events() -> Array[Dictionary]:
 	return _events.duplicate(true)
+
+static func completed_outcomes() -> Array[String]:
+	# A disk failure must not erase the outcome actually completed this session.
+	if not _events.is_empty():
+		return ["leave"]
+	return _store.completed_outcomes()

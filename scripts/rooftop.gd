@@ -30,6 +30,20 @@ func _ready() -> void:
 	start_new_run()
 
 
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		_release_focus_input.call_deferred()
+
+
+func _release_focus_input() -> void:
+	# The OS may lose finger releases; clearing actions alone leaves buttons captured.
+	for button in find_children("*", "TouchScreenButton", true, false):
+		if button.visible:
+			button.hide()
+			button.show()
+	SceneSwitch.release_pressed_input()
+
+
 func start_new_run() -> void:
 	run_state.reset()
 	demo_page = 0
